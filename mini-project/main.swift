@@ -1,26 +1,27 @@
 import Foundation
 
-// MARK: - Student Model
+
+// ==========================================================
+// MARK: - M1 — Data Model, Add Student, View Students
+// ==========================================================
 
 struct Student {
     let id: Int
     var name: String
     var age: Int
     var email: String?
-    var scores: [Int]
+    var scores: [Int] = []
 
     var average: Double? {
         guard !scores.isEmpty else {
             return nil
         }
 
-        let total = scores.reduce(0, +)
-
-        return Double(total) / Double(scores.count)
+        return Double(scores.reduce(0, +)) / Double(scores.count)
     }
 
     var grade: String {
-        guard let average = average else {
+        guard let average else {
             return "—"
         }
 
@@ -44,21 +45,64 @@ struct Student {
 }
 
 
-// MARK: - Storage
-
-var students: [Int: Student] = [:]
+var students: [Student] = []
 
 
-// MARK: - Validation Helpers
+// MARK: - Common Input Helper
 
-func readNewStudentID() -> Int {
+func input(_ message: String) -> String {
+    print(message, terminator: "")
+
+    return readLine()?
+        .trimmingCharacters(in: .whitespacesAndNewlines) ?? ""
+}
+
+
+// MARK: - Find Student
+
+func findStudentIndex(id: Int) -> Int? {
+    return students.firstIndex {
+        $0.id == id
+    }
+}
+
+
+// MARK: - Average Formatting
+
+func averageText(_ student: Student) -> String {
+    guard let average = student.average else {
+        return "—"
+    }
+
+    return String(format: "%.2f", average)
+}
+
+
+// MARK: - Display Students
+
+func showStudents(_ list: [Student]) {
+    guard !list.isEmpty else {
+        print("No students found.")
+        return
+    }
+
+    print("\nID\tName\tAverage\tGrade")
+
+    for student in list {
+        print(
+            "\(student.id)\t\(student.name)\t\(averageText(student))\t\(student.grade)"
+        )
+    }
+}
+
+
+// MARK: - M1 Validation Helpers
+
+func readNewID() -> Int {
     while true {
-        print("Student ID: ", terminator: "")
+        let value = input("Student ID: ")
 
-        let input = (readLine() ?? "")
-            .trimmingCharacters(in: .whitespaces)
-
-        guard let id = Int(input) else {
+        guard let id = Int(value) else {
             print("Error: ID must be a whole number.")
             continue
         }
@@ -68,7 +112,7 @@ func readNewStudentID() -> Int {
             continue
         }
 
-        guard students[id] == nil else {
+        guard findStudentIndex(id: id) == nil else {
             print("Error: ID \(id) already exists.")
             continue
         }
@@ -78,58 +122,25 @@ func readNewStudentID() -> Int {
 }
 
 
-func readExistingStudentID() -> Int {
+func readName() -> String {
     while true {
-        print("Student ID: ", terminator: "")
+        let name = input("Name: ")
 
-        let input = (readLine() ?? "")
-            .trimmingCharacters(in: .whitespaces)
-
-        guard let id = Int(input) else {
-            print("Error: ID must be a whole number.")
-            continue
-        }
-
-        guard id > 0 else {
-            print("Error: ID must be greater than 0.")
-            continue
-        }
-
-        guard students[id] != nil else {
-            print("Not found.")
-            continue
-        }
-
-        return id
-    }
-}
-
-
-func readValidName(prompt: String = "Name: ") -> String {
-    while true {
-        print(prompt, terminator: "")
-
-        let input = (readLine() ?? "")
-            .trimmingCharacters(in: .whitespaces)
-
-        guard !input.isEmpty else {
+        guard !name.isEmpty else {
             print("Error: Name cannot be empty.")
             continue
         }
 
-        return input
+        return name
     }
 }
 
 
-func readValidAge(prompt: String = "Age: ") -> Int {
+func readAge() -> Int {
     while true {
-        print(prompt, terminator: "")
+        let value = input("Age: ")
 
-        let input = (readLine() ?? "")
-            .trimmingCharacters(in: .whitespaces)
-
-        guard let age = Int(input) else {
+        guard let age = Int(value) else {
             print("Error: Age must be a whole number.")
             continue
         }
@@ -144,35 +155,243 @@ func readValidAge(prompt: String = "Age: ") -> Int {
 }
 
 
-func readValidEmail() -> String? {
+func readEmail() -> String? {
     while true {
-        print("Email (optional): ", terminator: "")
+        let email = input("Email (optional): ")
 
-        let input = (readLine() ?? "")
-            .trimmingCharacters(in: .whitespaces)
-
-        if input.isEmpty {
+        if email.isEmpty {
             return nil
         }
 
-        guard input.contains("@") else {
+        guard email.contains("@") else {
             print("Error: Email must contain @.")
             continue
         }
 
-        return input
+        return email
     }
 }
 
 
-func readValidScore() -> Int {
+// MARK: - M1 Add Student
+
+func addStudent() {
+    let student = Student(
+        id: readNewID(),
+        name: readName(),
+        age: readAge(),
+        email: readEmail()
+    )
+
+    students.append(student)
+
+    print("Student added.")
+}
+
+
+// MARK: - M1 View Students
+
+func viewStudents() {
+    guard !students.isEmpty else {
+        print("No students yet.")
+        return
+    }
+
+    let sortedStudents = students.sorted {
+        $0.id < $1.id
+    }
+
+    showStudents(sortedStudents)
+}
+
+
+
+// ==========================================================
+// MARK: - M2 — Search, Update, Delete
+// ==========================================================
+
+
+// MARK: - Existing Student Validation
+
+func readExistingStudentIndex() -> Int {
     while true {
-        print("Score: ", terminator: "")
+        let value = input("Student ID: ")
 
-        let input = (readLine() ?? "")
-            .trimmingCharacters(in: .whitespaces)
+        guard let id = Int(value) else {
+            print("Error: ID must be a whole number.")
+            continue
+        }
 
-        guard let score = Int(input) else {
+        guard id > 0 else {
+            print("Error: ID must be greater than 0.")
+            continue
+        }
+
+        guard let index = findStudentIndex(id: id) else {
+            print("Not found.")
+            continue
+        }
+
+        return index
+    }
+}
+
+
+// MARK: - M2 Search Student
+
+func searchStudent() {
+    guard !students.isEmpty else {
+        print("No students yet.")
+        return
+    }
+
+    let query = input("Search by ID or name: ")
+
+    guard !query.isEmpty else {
+        print("Not found.")
+        return
+    }
+
+    // Search by exact ID
+    if let id = Int(query),
+       let index = findStudentIndex(id: id) {
+
+        showStudents([students[index]])
+        return
+    }
+
+    // Search by part of name
+    let results = students.filter {
+        $0.name
+            .lowercased()
+            .contains(query.lowercased())
+    }
+
+    if results.isEmpty {
+        print("Not found.")
+    } else {
+        showStudents(results)
+    }
+}
+
+
+// MARK: - M2 Update Student
+
+func updateStudent() {
+    guard !students.isEmpty else {
+        print("No students yet.")
+        return
+    }
+
+    let index = readExistingStudentIndex()
+
+    print("Press Enter to keep the current value.")
+
+    // Update name
+    let newName = input(
+        "Name [\(students[index].name)]: "
+    )
+
+    if !newName.isEmpty {
+        students[index].name = newName
+    }
+
+
+    // Update age
+    while true {
+        let value = input(
+            "Age [\(students[index].age)]: "
+        )
+
+        if value.isEmpty {
+            break
+        }
+
+        guard let age = Int(value) else {
+            print("Error: Age must be a whole number.")
+            continue
+        }
+
+        guard (16...60).contains(age) else {
+            print("Error: Age must be between 16 and 60.")
+            continue
+        }
+
+        students[index].age = age
+        break
+    }
+
+
+    // Update email
+    while true {
+        let currentEmail =
+            students[index].email ?? "not provided"
+
+        let newEmail = input(
+            "Email [\(currentEmail)]: "
+        )
+
+        if newEmail.isEmpty {
+            break
+        }
+
+        guard newEmail.contains("@") else {
+            print("Error: Email must contain @.")
+            continue
+        }
+
+        students[index].email = newEmail
+        break
+    }
+
+    print("Student updated.")
+}
+
+
+// MARK: - M2 Delete Student
+
+func deleteStudent() {
+    guard !students.isEmpty else {
+        print("No students yet.")
+        return
+    }
+
+    let index = readExistingStudentIndex()
+
+    while true {
+        let answer = input(
+            "Delete \(students[index].name)? (y/n): "
+        ).lowercased()
+
+        if answer == "y" {
+            students.remove(at: index)
+            print("Student deleted.")
+            return
+        }
+
+        if answer == "n" {
+            print("Delete cancelled.")
+            return
+        }
+
+        print("Error: Please enter y or n.")
+    }
+}
+
+
+
+// ==========================================================
+// MARK: - M3 — Scores, Averages, Grades, Class Report
+// ==========================================================
+
+
+// MARK: - Score Validation
+
+func readScore() -> Int {
+    while true {
+        let value = input("Score: ")
+
+        guard let score = Int(value) else {
             print("Error: Score must be a whole number.")
             continue
         }
@@ -187,304 +406,7 @@ func readValidScore() -> Int {
 }
 
 
-func readUpdatedName(currentName: String) -> String {
-    while true {
-        print("Name [\(currentName)]: ", terminator: "")
-
-        let rawInput = readLine() ?? ""
-
-        // Pressing Enter keeps the old value.
-        if rawInput.isEmpty {
-            return currentName
-        }
-
-        let input = rawInput.trimmingCharacters(in: .whitespaces)
-
-        guard !input.isEmpty else {
-            print("Error: Name cannot be empty.")
-            continue
-        }
-
-        return input
-    }
-}
-
-
-func readUpdatedAge(currentAge: Int) -> Int {
-    while true {
-        print("Age [\(currentAge)]: ", terminator: "")
-
-        let input = (readLine() ?? "")
-            .trimmingCharacters(in: .whitespaces)
-
-        // Enter keeps current age.
-        if input.isEmpty {
-            return currentAge
-        }
-
-        guard let age = Int(input) else {
-            print("Error: Age must be a whole number.")
-            continue
-        }
-
-        guard (16...60).contains(age) else {
-            print("Error: Age must be between 16 and 60.")
-            continue
-        }
-
-        return age
-    }
-}
-
-
-func readUpdatedEmail(currentEmail: String?) -> String? {
-    while true {
-        print(
-            "Email [\(currentEmail ?? "not provided")]: ",
-            terminator: ""
-        )
-
-        let rawInput = readLine() ?? ""
-
-        // Pressing Enter keeps current email.
-        if rawInput.isEmpty {
-            return currentEmail
-        }
-
-        let input = rawInput.trimmingCharacters(in: .whitespaces)
-
-        guard !input.isEmpty else {
-            print("Error: Email cannot contain only spaces.")
-            continue
-        }
-
-        guard input.contains("@") else {
-            print("Error: Email must contain @.")
-            continue
-        }
-
-        return input
-    }
-}
-
-
-func readConfirmation(prompt: String) -> Bool {
-    while true {
-        print(prompt, terminator: "")
-
-        let input = (readLine() ?? "")
-            .trimmingCharacters(in: .whitespaces)
-            .lowercased()
-
-        switch input {
-        case "y":
-            return true
-
-        case "n":
-            return false
-
-        default:
-            print("Error: Please enter y or n.")
-        }
-    }
-}
-
-
-// MARK: - Display Helpers
-
-func averageText(for student: Student) -> String {
-    guard let average = student.average else {
-        return "—"
-    }
-
-    return String(format: "%.2f", average)
-}
-
-
-func printStudent(_ student: Student) {
-    print("""
-    ID: \(student.id)
-    Name: \(student.name)
-    Age: \(student.age)
-    Email: \(student.email ?? "not provided")
-    Average: \(averageText(for: student))
-    Grade: \(student.grade)
-    """)
-}
-
-
-func printStudentTable(_ list: [Student]) {
-    guard !list.isEmpty else {
-        print("No students found.")
-        return
-    }
-
-    print("ID\tName\tAverage\tGrade")
-
-    for student in list {
-        print(
-            "\(student.id)\t\(student.name)\t\(averageText(for: student))\t\(student.grade)"
-        )
-    }
-}
-
-
-// MARK: - 1. Add Student
-
-func addStudent() {
-    let id = readNewStudentID()
-    let name = readValidName()
-    let age = readValidAge()
-    let email = readValidEmail()
-
-    let student = Student(
-        id: id,
-        name: name,
-        age: age,
-        email: email,
-        scores: []
-    )
-
-    students[id] = student
-
-    print("Student added.")
-}
-
-
-// MARK: - 2. View All Students
-
-func viewStudents() {
-    guard !students.isEmpty else {
-        print("No students yet.")
-        return
-    }
-
-    let sortedStudents = students.values.sorted {
-        $0.id < $1.id
-    }
-
-    printStudentTable(sortedStudents)
-}
-
-
-// MARK: - 3. Search Student
-
-func searchStudent() {
-    guard !students.isEmpty else {
-        print("No students yet.")
-        return
-    }
-
-    while true {
-        print("Search by ID or name: ", terminator: "")
-
-        let query = (readLine() ?? "")
-            .trimmingCharacters(in: .whitespaces)
-
-        guard !query.isEmpty else {
-            print("Error: Search cannot be empty.")
-            continue
-        }
-
-        // Exact ID search
-        if let id = Int(query) {
-            if let student = students[id] {
-                printStudent(student)
-            } else {
-                print("Not found.")
-            }
-
-            return
-        }
-
-        // Partial case-insensitive name search
-        let loweredQuery = query.lowercased()
-
-        let matches = students.values
-            .filter {
-                $0.name.lowercased().contains(loweredQuery)
-            }
-            .sorted {
-                $0.name.lowercased() < $1.name.lowercased()
-            }
-
-        guard !matches.isEmpty else {
-            print("Not found.")
-            return
-        }
-
-        for student in matches {
-            printStudent(student)
-            print()
-        }
-
-        return
-    }
-}
-
-
-// MARK: - 4. Update Student
-
-func updateStudent() {
-    guard !students.isEmpty else {
-        print("No students yet.")
-        return
-    }
-
-    let id = readExistingStudentID()
-
-    guard var student = students[id] else {
-        return
-    }
-
-    print("Press Enter to keep the current value.")
-
-    student.name = readUpdatedName(
-        currentName: student.name
-    )
-
-    student.age = readUpdatedAge(
-        currentAge: student.age
-    )
-
-    student.email = readUpdatedEmail(
-        currentEmail: student.email
-    )
-
-    students[id] = student
-
-    print("Student updated.")
-}
-
-
-// MARK: - 5. Delete Student
-
-func deleteStudent() {
-    guard !students.isEmpty else {
-        print("No students yet.")
-        return
-    }
-
-    let id = readExistingStudentID()
-
-    guard let student = students[id] else {
-        return
-    }
-
-    let confirmed = readConfirmation(
-        prompt: "Delete \(student.name)? (y/n): "
-    )
-
-    if confirmed {
-        students.removeValue(forKey: id)
-        print("Student deleted.")
-    } else {
-        print("Delete cancelled.")
-    }
-}
-
-
-// MARK: - 6. Add Score
+// MARK: - M3 Add Score
 
 func addScore() {
     guard !students.isEmpty else {
@@ -492,23 +414,16 @@ func addScore() {
         return
     }
 
-    let id = readExistingStudentID()
+    let index = readExistingStudentIndex()
+    let score = readScore()
 
-    guard var student = students[id] else {
-        return
-    }
-
-    let score = readValidScore()
-
-    student.scores.append(score)
-
-    students[id] = student
+    students[index].scores.append(score)
 
     print("Score added.")
 }
 
 
-// MARK: - 7. Class Report
+// MARK: - M3 Class Report
 
 func classReport() {
     guard !students.isEmpty else {
@@ -518,14 +433,13 @@ func classReport() {
 
     print("\n===== CLASS REPORT =====")
 
-    let sortedStudents = students.values.sorted {
+    let sortedStudents = students.sorted {
         $0.id < $1.id
     }
 
-    printStudentTable(sortedStudents)
+    showStudents(sortedStudents)
 
-    // Only students who actually have scores are included.
-    let averages = students.values.compactMap {
+    let averages = students.compactMap {
         $0.average
     }
 
@@ -535,7 +449,9 @@ func classReport() {
     }
 
     let total = averages.reduce(0, +)
-    let classAverage = total / Double(averages.count)
+
+    let classAverage =
+        total / Double(averages.count)
 
     print(
         "\nClass average: \(String(format: "%.2f", classAverage))"
@@ -543,137 +459,10 @@ func classReport() {
 }
 
 
-// MARK: - Filter Helpers
 
-func filterByGrade() {
-    guard !students.isEmpty else {
-        print("No students yet.")
-        return
-    }
-
-    while true {
-        print("Grade (A/B/C/D/F): ", terminator: "")
-
-        let grade = (readLine() ?? "")
-            .trimmingCharacters(in: .whitespaces)
-            .uppercased()
-
-        let validGrades = ["A", "B", "C", "D", "F"]
-
-        guard validGrades.contains(grade) else {
-            print("Error: Grade must be A, B, C, D, or F.")
-            continue
-        }
-
-        let matches = students.values
-            .filter {
-                $0.grade == grade
-            }
-            .sorted {
-                $0.name.lowercased() < $1.name.lowercased()
-            }
-
-        if matches.isEmpty {
-            print("No students found.")
-        } else {
-            printStudentTable(matches)
-        }
-
-        return
-    }
-}
-
-
-func showPassingStudents() {
-    guard !students.isEmpty else {
-        print("No students yet.")
-        return
-    }
-
-    let passing = students.values
-        .filter { student in
-            guard let average = student.average else {
-                return false
-            }
-
-            return average >= 50
-        }
-        .sorted {
-            ($0.average ?? -1) > ($1.average ?? -1)
-        }
-
-    guard !passing.isEmpty else {
-        print("No passing students.")
-        return
-    }
-
-    printStudentTable(passing)
-}
-
-
-func showFailingStudents() {
-    guard !students.isEmpty else {
-        print("No students yet.")
-        return
-    }
-
-    let failing = students.values
-        .filter { student in
-            guard let average = student.average else {
-                return false
-            }
-
-            return average < 50
-        }
-        .sorted {
-            ($0.average ?? -1) > ($1.average ?? -1)
-        }
-
-    guard !failing.isEmpty else {
-        print("No failing students.")
-        return
-    }
-
-    printStudentTable(failing)
-}
-
-
-func sortByName() {
-    guard !students.isEmpty else {
-        print("No students yet.")
-        return
-    }
-
-    let sortedStudents = students.values.sorted {
-        $0.name.lowercased() < $1.name.lowercased()
-    }
-
-    printStudentTable(sortedStudents)
-}
-
-
-func sortByAverage() {
-    guard !students.isEmpty else {
-        print("No students yet.")
-        return
-    }
-
-    let sortedStudents = students.values.sorted {
-        let firstAverage = $0.average ?? -1
-        let secondAverage = $1.average ?? -1
-
-        if firstAverage == secondAverage {
-            return $0.name.lowercased() < $1.name.lowercased()
-        }
-
-        return firstAverage > secondAverage
-    }
-
-    printStudentTable(sortedStudents)
-}
-
-
-// MARK: - 8. Filter & Sort Menu
+// ==========================================================
+// MARK: - M4 — Filter and Sort
+// ==========================================================
 
 func filterAndSort() {
     guard !students.isEmpty else {
@@ -681,57 +470,145 @@ func filterAndSort() {
         return
     }
 
-    while true {
-        print("""
-        
-        ===== FILTER & SORT =====
-        1. Filter by grade
-        2. Passing students
-        3. Failing students
-        4. Sort by name A-Z
-        5. Sort by average high-low
-        0. Back
-        """)
+    print("""
+    
+    ===== FILTER & SORT =====
+    1. Filter by grade
+    2. Passing students
+    3. Failing students
+    4. Sort by name A-Z
+    5. Sort by average high-low
+    0. Back
+    """)
 
-        print("Choose an option: ", terminator: "")
+    let choice = input("Choose an option: ")
 
-        let choice = (readLine() ?? "")
-            .trimmingCharacters(in: .whitespaces)
+    switch choice {
 
-        switch choice {
-        case "1":
-            filterByGrade()
+    // Filter by grade
+    case "1":
+        let grade =
+            input("Grade (A/B/C/D/F): ")
+                .uppercased()
+
+        guard ["A", "B", "C", "D", "F"]
+            .contains(grade) else {
+
+            print("Invalid grade.")
             return
-
-        case "2":
-            showPassingStudents()
-            return
-
-        case "3":
-            showFailingStudents()
-            return
-
-        case "4":
-            sortByName()
-            return
-
-        case "5":
-            sortByAverage()
-            return
-
-        case "0":
-            return
-
-        default:
-            print("Invalid option.")
         }
+
+        let result = students.filter {
+            $0.grade == grade
+        }
+
+        showStudents(result)
+
+
+    // Passing only
+    case "2":
+        let result = students.filter {
+            guard let average = $0.average else {
+                return false
+            }
+
+            return average >= 50
+        }
+
+        showStudents(result)
+
+
+    // Failing only
+    case "3":
+        let result = students.filter {
+            guard let average = $0.average else {
+                return false
+            }
+
+            return average < 50
+        }
+
+        showStudents(result)
+
+
+    // Sort name A-Z
+    case "4":
+        let result = students.sorted {
+            $0.name.lowercased()
+            <
+            $1.name.lowercased()
+        }
+
+        showStudents(result)
+
+
+    // Sort average high-low
+    case "5":
+        let result = students.sorted {
+            ($0.average ?? -1)
+            >
+            ($1.average ?? -1)
+        }
+
+        showStudents(result)
+
+
+    case "0":
+        return
+
+
+    default:
+        print("Invalid option.")
     }
 }
 
 
+
+// ==========================================================
+// MARK: - M5 — Validation and Error Handling
+// ==========================================================
+//
+// Validation used throughout the program:
+//
+// ID:
+// - Must be whole number
+// - Must be > 0
+// - Must be unique
+//
+// Name:
+// - Cannot be empty
+//
+// Age:
+// - Must be whole number
+// - Must be 16...60
+//
+// Email:
+// - Optional
+// - Must contain @ when provided
+//
+// Score:
+// - Must be whole number
+// - Must be 0...100
+//
+// Menu:
+// - Only 0...8 accepted
+//
+// Invalid input:
+// - Shows specific error message
+// - Validation loops ask again
+// - Program does not crash
+//
+// Missing email:
+// - Uses "not provided"
+//
+// Missing scores:
+// - Average and grade display "—"
+//
+
+
 // MARK: - Main Menu
 
-mainLoop: while true {
+func showMenu() {
     print("""
     
     ===== ACADEMIC MANAGER =====
@@ -745,42 +622,50 @@ mainLoop: while true {
     8. Filter & sort
     0. Exit
     """)
+}
 
-    print("Choose an option: ", terminator: "")
 
-    let choice = (readLine() ?? "")
-        .trimmingCharacters(in: .whitespaces)
+func run() {
+    while true {
+        showMenu()
 
-    switch choice {
-    case "1":
-        addStudent()
+        let option = input("Choose an option: ")
 
-    case "2":
-        viewStudents()
+        switch option {
 
-    case "3":
-        searchStudent()
+        case "1":
+            addStudent()
 
-    case "4":
-        updateStudent()
+        case "2":
+            viewStudents()
 
-    case "5":
-        deleteStudent()
+        case "3":
+            searchStudent()
 
-    case "6":
-        addScore()
+        case "4":
+            updateStudent()
 
-    case "7":
-        classReport()
+        case "5":
+            deleteStudent()
 
-    case "8":
-        filterAndSort()
+        case "6":
+            addScore()
 
-    case "0":
-        print("Goodbye!")
-        break mainLoop
+        case "7":
+            classReport()
 
-    default:
-        print("Invalid option.")
+        case "8":
+            filterAndSort()
+
+        case "0":
+            print("Goodbye!")
+            return
+
+        default:
+            print("Invalid option.")
+        }
     }
 }
+
+
+run()
