@@ -48,131 +48,6 @@ struct Student {
 var students: [Student] = []
 
 
-// MARK: - Common Input Helper
-
-func input(_ message: String) -> String {
-    print(message, terminator: "")
-
-    return readLine()?
-        .trimmingCharacters(in: .whitespacesAndNewlines) ?? ""
-}
-
-
-// MARK: - Find Student
-
-func findStudentIndex(id: Int) -> Int? {
-    return students.firstIndex {
-        $0.id == id
-    }
-}
-
-
-// MARK: - Average Formatting
-
-func averageText(_ student: Student) -> String {
-    guard let average = student.average else {
-        return "—"
-    }
-
-    return String(format: "%.2f", average)
-}
-
-
-// MARK: - Display Students
-
-func showStudents(_ list: [Student]) {
-    guard !list.isEmpty else {
-        print("No students found.")
-        return
-    }
-
-    print("\nID\tName\tAverage\tGrade")
-
-    for student in list {
-        print(
-            "\(student.id)\t\(student.name)\t\(averageText(student))\t\(student.grade)"
-        )
-    }
-}
-
-
-// MARK: - M1 Validation Helpers
-
-func readNewID() -> Int {
-    while true {
-        let value = input("Student ID: ")
-
-        guard let id = Int(value) else {
-            print("Error: ID must be a whole number.")
-            continue
-        }
-
-        guard id > 0 else {
-            print("Error: ID must be greater than 0.")
-            continue
-        }
-
-        guard findStudentIndex(id: id) == nil else {
-            print("Error: ID \(id) already exists.")
-            continue
-        }
-
-        return id
-    }
-}
-
-
-func readName() -> String {
-    while true {
-        let name = input("Name: ")
-
-        guard !name.isEmpty else {
-            print("Error: Name cannot be empty.")
-            continue
-        }
-
-        return name
-    }
-}
-
-
-func readAge() -> Int {
-    while true {
-        let value = input("Age: ")
-
-        guard let age = Int(value) else {
-            print("Error: Age must be a whole number.")
-            continue
-        }
-
-        guard (16...60).contains(age) else {
-            print("Error: Age must be between 16 and 60.")
-            continue
-        }
-
-        return age
-    }
-}
-
-
-func readEmail() -> String? {
-    while true {
-        let email = input("Email (optional): ")
-
-        if email.isEmpty {
-            return nil
-        }
-
-        guard email.contains("@") else {
-            print("Error: Email must contain @.")
-            continue
-        }
-
-        return email
-    }
-}
-
-
 // MARK: - M1 Add Student
 
 func addStudent() {
@@ -211,32 +86,6 @@ func viewStudents() {
 // ==========================================================
 
 
-// MARK: - Existing Student Validation
-
-func readExistingStudentIndex() -> Int {
-    while true {
-        let value = input("Student ID: ")
-
-        guard let id = Int(value) else {
-            print("Error: ID must be a whole number.")
-            continue
-        }
-
-        guard id > 0 else {
-            print("Error: ID must be greater than 0.")
-            continue
-        }
-
-        guard let index = findStudentIndex(id: id) else {
-            print("Not found.")
-            continue
-        }
-
-        return index
-    }
-}
-
-
 // MARK: - M2 Search Student
 
 func searchStudent() {
@@ -254,7 +103,7 @@ func searchStudent() {
 
     // Search by exact ID
     if let id = Int(query),
-       let index = findStudentIndex(id: id) {
+        let index = findStudentIndex(id: id) {
 
         showStudents([students[index]])
         return
@@ -383,27 +232,6 @@ func deleteStudent() {
 // ==========================================================
 // MARK: - M3 — Scores, Averages, Grades, Class Report
 // ==========================================================
-
-
-// MARK: - Score Validation
-
-func readScore() -> Int {
-    while true {
-        let value = input("Score: ")
-
-        guard let score = Int(value) else {
-            print("Error: Score must be a whole number.")
-            continue
-        }
-
-        guard (0...100).contains(score) else {
-            print("Error: Score must be between 0 and 100.")
-            continue
-        }
-
-        return score
-    }
-}
 
 
 // MARK: - M3 Add Score
